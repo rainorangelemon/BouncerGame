@@ -22,7 +22,7 @@ public class Starter extends Application{
 	public static HashMap<Character, Image> pictures = new HashMap<Character, Image> ();
 	private static HashMap<Integer, Level> levels = new HashMap<Integer, Level> ();
 	private static Stage s;
-	static LevelRunning currentLevel;
+	public static LevelRunning currentLevel;
 	static int currentNum;
 	
 	public static double PaddleHeight;
@@ -80,11 +80,15 @@ public class Starter extends Application{
 	public void loadData(){
 		loadFile(1,"1.txt");
 		loadFile(2,"2.txt");
+		loadFile(3,"3.txt");
 		loadPicture('1', "brick9.gif");
 		loadPicture('2', "brick2.gif");
 		loadPicture('3', "brick3.gif");
 		loadPicture('_', "paddle.gif");
 		loadPicture('.',"ball.gif");
+		loadPicture('t',"extraballpower.gif");
+		loadPicture('v',"laserpower.gif");
+		loadPicture('s',"pointspower.gif");
 	}
 	
 	@Override
@@ -97,7 +101,9 @@ public class Starter extends Application{
         setStage(s);
      // attach "game loop" to timeline to play it
         KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY/100.0),
-        		e -> { currentLevel.refresh(SECOND_DELAY*10);
+        		e -> {
+        			if(!anounce)
+        				currentLevel.refresh(SECOND_DELAY*10);
         		});
         Timeline animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
@@ -122,10 +128,12 @@ public class Starter extends Application{
 	}
 	
 	static Boolean winFlag=false;
+	static Boolean anounce=false;
 	
 	private static void handleKeyInput (KeyCode code) {
         currentLevel.paddleRefresh(code);
         if (code == KeyCode.ENTER) {
+        	anounce=false;
         	if(winFlag==true){
         		addLevel();
         	}else{
@@ -135,21 +143,27 @@ public class Starter extends Application{
         if(code == KeyCode.N){
         	win();
         }
+        if(code == KeyCode.SPACE){
+        	currentLevel.ball.reset();
+        }
     }
 	
 	public static void lose(){
+		anounce=true;
 		winFlag=false;
 		Text t=new Text("You lose this level!\n" + "Press ENTER to restart");
 		printText(t);
 	}
 	
 	public static void win(){
+		anounce=true;
 		winFlag=true;
 		Text t=new Text("You win this level!\n" + "Press ENTER to go to next level");
 		printText(t);
 	}
 	
 	public static void goFinal(){
+		anounce=true;
 		winFlag=true;
 		Text t=new Text("You win the whole game!\n" + "Goodbye!");
 		printText(t);

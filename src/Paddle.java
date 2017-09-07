@@ -50,9 +50,9 @@ public class Paddle extends Ball{
 
 	public double ChangeY(double posX, double posY, double speedX, double speedY) {
 		if(hitTop(posX,posY)){
-			return -speedY;
+			return -Math.abs(speedY);
 		}else{
-			return speedY;
+			return Math.abs(speedY);
 		}
 	}
 	

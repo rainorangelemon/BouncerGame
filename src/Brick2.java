@@ -2,7 +2,7 @@ import javafx.scene.image.Image;
 
 
 public class Brick2 extends Brick {
-	private int hit=1;
+	private int hit=0;
 	private int kind=3;
 	
 	Brick2(Image image, int xNum, int yNum) {
@@ -12,6 +12,7 @@ public class Brick2 extends Brick {
 	@Override
 	public Boolean Disappear(){
 		if(hit>=kind){
+			Starter.currentLevel.createPowerUp(getX(),getY());
 			return true;
 		}else{
 			return false;

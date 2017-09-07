@@ -15,4 +15,22 @@ public class Brick3 extends Brick {
 	@Override
 	public void addHit(){
 	}
+	
+	@Override
+	public double ChangeX(double posX, double posY, double speedX, double speedY) {
+		if(LevelRunning.throughWall()){
+			return speedX;
+		}else{
+			return super.ChangeX(posX, posY, speedX, speedY);
+		}
+	}
+	
+	@Override
+	public double ChangeY(double posX, double posY, double speedX, double speedY) {
+		if(LevelRunning.throughWall()){
+			return speedY;
+		}else{
+			return super.ChangeY(posX, posY, speedX, speedY);
+		}
+	}
 }
