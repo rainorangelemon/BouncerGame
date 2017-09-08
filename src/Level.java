@@ -12,7 +12,6 @@ public class Level {
 	public void buildBrick(int layer, String bricks){
 		if(layer>=rowNum){
 		}else{
-			System.out.printf("%s\n",bricks);
 			for(int i = 0; (i<columnNum) && (i<bricks.length());i++){
 				char item=bricks.charAt(i);
 				if(((item-'1'>=0)&&('3'-item>=0))||(item=='_')){

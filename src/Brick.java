@@ -26,7 +26,7 @@ public class Brick extends ImageView{
 			top=(posY<=getY())?top:-1;
 		double bottom=(getY()+Starter.BrickHeight)-posY; 
 			bottom=((posY+Starter.BallHeight)>=(getY()+Starter.BrickHeight))?bottom:-1;
-		if((max(left,right)>=0L)&&(max(top,bottom)<max(left,right))){
+		if(max(left,right)>=0L){
 	        return (right>=0L)?Math.abs(speedX):(-Math.abs(speedX));
 		}else{
 			return speedX;
@@ -34,11 +34,6 @@ public class Brick extends ImageView{
 	}
 
 	public double ChangeY(double posX, double posY, double speedX, double speedY) {
-		/*if(((posY+Starter.BallHeight>=getY())&&(posY<=getY()))||((posY+Starter.BallHeight>=getY()+Starter.BrickHeight)&&(posY<=getY()+Starter.BrickHeight))){
-	        return -speedY;
-		}else{
-			return speedY;
-		}*/
 		double left=posX+Starter.BallWidth-getX();
 			left=(posX<=getX())?left:-1;
 		double right=(getX()+Starter.BrickWidth)-posX;
@@ -47,7 +42,7 @@ public class Brick extends ImageView{
 			top=(posY<=getY())?top:-1;
 		double bottom=(getY()+Starter.BrickHeight)-posY; 
 			bottom=((posY+Starter.BallHeight)>=(getY()+Starter.BrickHeight))?bottom:-1;
-		if((max(top,bottom)>=0L)&&(max(top,bottom)>=max(left,right))){
+		if(max(top,bottom)>=0L){
 			return (bottom>=0L)?Math.abs(speedY):(-Math.abs(speedY));
 		}else{
 			return speedY;

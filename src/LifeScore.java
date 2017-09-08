@@ -11,13 +11,13 @@ public class LifeScore extends Text{
 		super();
 		setX(0);
 		setY(0+36);
-		setText("Life: "+String.valueOf(life)+", Score: "+String.valueOf(score));
+		refreshText();
 		setFill(Color.YELLOW);
 		setFont(Font.font(null, FontWeight.NORMAL, 36));
 	}
 	
 	void refreshText(){
-		setText("Life: "+String.valueOf(life)+", Score: "+String.valueOf(score));
+		setText("Life: "+String.valueOf(life)+", Score: "+String.valueOf(score)+" ,Level: "+String.valueOf(Starter.currentNum));
 	}
 	
 	void reset(){
@@ -42,6 +42,7 @@ public class LifeScore extends Text{
 	
 	public void increaseScore(int num){
 		score=score+num;
+		refreshText();
 	}
 	
 	public int getScore(){
