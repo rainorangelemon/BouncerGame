@@ -5,27 +5,48 @@ import javafx.scene.image.ImageView;
 
 public class Brick extends ImageView{
 	private int hit=0;
-	private int kind=0;
+	private double left,right,top,bottom;
+	protected double BallWidth;
+	protected double BrickWidth;
+	protected double BallHeight;
+	protected double BrickHeight;
 	
-	Brick(Image image, int rowNum, int columnNum){
+	Brick(Image image, int rowNum, int columnNum,double BallHeight,double BallWidth){
 		super(image);
-		setX(columnNum*(image.getWidth()+1));
-		setY(rowNum*(image.getHeight()+1));
+		BrickWidth=image.getWidth();
+		BrickHeight=image.getHeight();
+		setX(columnNum*(BrickWidth+1));
+		setY(rowNum*(BrickHeight+1));
+		this.BallHeight=BallHeight;
+		this.BallWidth=BallWidth;
 	}
 	
 	double max(double a, double b){
 		return a>b?a:b;
 	}
 	
-	public double ChangeX(double posX, double posY, double speedX, double speedY) {
-		double left=posX+Starter.BallWidth-getX();
+	private void calculateHitPart(double posX, double posY) {
+		left=posX+BallWidth-getX();
 			left=(posX<=getX())?left:-1;
-		double right=(getX()+Starter.BrickWidth)-posX;
-			right=((posX+Starter.BallWidth)>=(getX()+Starter.BrickWidth))?right:-1;
-		double top=posY+Starter.BallHeight-getY(); 
+		right=(getX()+BrickWidth)-posX;
+			right=((posX+BallWidth)>=(getX()+BrickWidth))?right:-1;
+		top=posY+BallHeight-getY(); 
 			top=(posY<=getY())?top:-1;
-		double bottom=(getY()+Starter.BrickHeight)-posY; 
-			bottom=((posY+Starter.BallHeight)>=(getY()+Starter.BrickHeight))?bottom:-1;
+		bottom=(getY()+BrickHeight)-posY; 
+			bottom=((posY+BallHeight)>=(getY()+BrickHeight))?bottom:-1;
+	}
+	
+	public double ChangeX(double posX, double posY, double speedX, double speedY) {
+		calculateHitPart(posX, posY);
+		if(max(left,right)>=0L){
+	        return (right>=0L)?Math.abs(speedX):(-Math.abs(speedX));
+		}else{
+			return speedX;
+		}
+	}
+	
+	public double ChangeX(double posX, double posY, double speedX, double speedY, Boolean throughWall) {
+		calculateHitPart(posX, posY);
 		if(max(left,right)>=0L){
 	        return (right>=0L)?Math.abs(speedX):(-Math.abs(speedX));
 		}else{
@@ -34,14 +55,7 @@ public class Brick extends ImageView{
 	}
 
 	public double ChangeY(double posX, double posY, double speedX, double speedY) {
-		double left=posX+Starter.BallWidth-getX();
-			left=(posX<=getX())?left:-1;
-		double right=(getX()+Starter.BrickWidth)-posX;
-			right=((posX+Starter.BallWidth)>=(getX()+Starter.BrickWidth))?right:-1;
-		double top=posY+Starter.BallHeight-getY(); 
-			top=(posY<=getY())?top:-1;
-		double bottom=(getY()+Starter.BrickHeight)-posY; 
-			bottom=((posY+Starter.BallHeight)>=(getY()+Starter.BrickHeight))?bottom:-1;
+		calculateHitPart(posX, posY);
 		if(max(top,bottom)>=0L){
 			return (bottom>=0L)?Math.abs(speedY):(-Math.abs(speedY));
 		}else{
@@ -49,8 +63,17 @@ public class Brick extends ImageView{
 		}
 	}
 	
-	public Boolean Disappear(){
-		return false;
+	public double ChangeY(double posX, double posY, double speedX, double speedY, Boolean throughWall) {
+		calculateHitPart(posX, posY);
+		if(max(top,bottom)>=0L){
+			return (bottom>=0L)?Math.abs(speedY):(-Math.abs(speedY));
+		}else{
+			return speedY;
+		}
+	}
+	
+	public String Disappear(){
+		return " ";
 	}
 	
 	public void addHit(){

@@ -7,31 +7,35 @@ import javafx.scene.text.*;
 public class LifeScore extends Text{
 	private int life=3;
 	private int score=0;
-	LifeScore(){
+	private int currentNum;
+	LifeScore(int currentNum){
 		super();
 		setX(0);
 		setY(0+36);
 		refreshText();
 		setFill(Color.YELLOW);
 		setFont(Font.font(null, FontWeight.NORMAL, 36));
+		this.currentNum=currentNum;
 	}
 	
 	void refreshText(){
-		setText("Life: "+String.valueOf(life)+", Score: "+String.valueOf(score)+" ,Level: "+String.valueOf(Starter.currentNum));
+		setText("Life: "+String.valueOf(life)+", Score: "+String.valueOf(score)+" ,Level: "+String.valueOf(currentNum));
 	}
 	
-	void reset(){
+	void reset(int currentNum){
 		life=3;
 		score=0;
+		this.currentNum=currentNum;
 		refreshText();
 	}
 	
-	public void decreaseLife(){
+	public String decreaseLife(){
 		life--;
 		if(life<0){
-			Starter.lose();
+			return "lose";
 		}else{
 			refreshText();
+			return "";
 		}
 	}
 	

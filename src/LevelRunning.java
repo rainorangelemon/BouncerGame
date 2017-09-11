@@ -1,48 +1,82 @@
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Paint;
 
 public class LevelRunning {
-	public static int RowNum;
-	public static int ColumnNum;
-	Paint background;
+	private int RowNum;
+	private int ColumnNum;
+	private Paint background;
 	private Set<Brick> graphs = new HashSet<Brick>();
+	private HashMap<Character, Image> pictures;
 	private Set<PowerUp> powerUpsFalling = new HashSet<PowerUp>();
-	private static Set<PowerUp> powerUpsCaught = new HashSet<PowerUp>();
-	public static Scene myScene;
-	private static LifeScore lifeScore = new LifeScore();
-	public Group root = new Group();
-	Paddle paddle = new Paddle(0, 0, Starter.pictures.get('_'));
-	Ball ball = new Ball(0, 0, Starter.pictures.get('.'));
+	private Set<PowerUp> powerUpsCaught = new HashSet<PowerUp>();
+	private Scene myScene;
+	private LifeScore lifeScore;
+	private Group root = new Group();
+	private Paddle paddle;
+	private Ball ball;
 	private int remainBrick = 0;
+	private double BrickHeight;
+	private double BrickWidth;
+	private double PaddleWidth;
+	private double PaddleHeight;
+	private double BallHeight;
+	private double BallWidth;
+	private double PowerUpHeight;
+	private double PowerUpWidth;
+	private int currentNum;
+	
 
-	LevelRunning(Level source) {
-		create(source);
+	LevelRunning(Level source, HashMap<Character, Image> pic, int currentNum) {
+		pictures=new HashMap<Character, Image>(pic);
+		for(Character name:pictures.keySet()){
+			if(name=='1'){
+				BrickHeight = pictures.get(name).getHeight();
+				BrickWidth=pictures.get(name).getWidth();
+			}else if(name=='_'){
+				PaddleHeight=pictures.get(name).getHeight();
+				PaddleWidth=pictures.get(name).getWidth();
+			}else if(name=='.'){
+				BallHeight=pictures.get(name).getHeight();
+				BallWidth=pictures.get(name).getWidth();
+			}else if(name=='t'){
+				PowerUpHeight=pictures.get(name).getHeight();
+				PowerUpWidth=pictures.get(name).getWidth();
+			}
+		}
+		ball = new Ball(0, 0, pictures.get('.'));
+		paddle = new Paddle(0, 0, pictures.get('_'),PaddleHeight, PaddleWidth, BallHeight, BallWidth);
+		lifeScore=new LifeScore(currentNum);
+		this.currentNum=currentNum;
+		create(source, currentNum);;
 	}
 
-	public void create(Level source) {
+	public void create(Level source,int currentNum) {
 		this.RowNum = source.rowNum;
 		this.ColumnNum = source.columnNum;
 		setBricks(source);
-		paddle.reset((ColumnNum / 2) * Starter.PaddleWidth, RowNum
-				* Starter.BrickHeight - Starter.PaddleHeight);
-		ball.reset(paddle.getX() + Starter.PaddleWidth / 2 - Starter.BallWidth
-				/ 2, paddle.getY() - (Starter.BallHeight) - 1);
-		lifeScore.reset();
+		paddle.reset((ColumnNum / 2) * PaddleWidth, RowNum
+				* BrickHeight - PaddleHeight);
+		ball.reset(paddle.getX() + PaddleWidth / 2 - BallWidth
+				/ 2, paddle.getY() - (BallHeight) - 1);
+		lifeScore.reset(currentNum);
 	}
 
-	public Scene reset(Level source) {
+	public Scene reset(Level source, int currentNum) {
+		this.currentNum=currentNum;
 		removeAll2Root();
 		graphs.clear();
 		powerUpsFalling.clear();
 		powerUpsCaught.clear();
 		remainBrick = 0;
-		create(source);
+		create(source,currentNum);
 		return getScene(background);
 	}
 
@@ -53,22 +87,22 @@ public class LevelRunning {
 				if ((temp >= '1') && (temp <= '3')) {
 					switch (temp) {
 					case '1': {
-						Brick newBrick = new Brick1(Starter.pictures.get(temp),
-								i, j);
+						Brick newBrick = new Brick1(pictures.get(temp),
+								i, j,BallHeight,BallWidth);
 						graphs.add(newBrick);
 						remainBrick++;
 						break;
 					}
 					case '2': {
-						Brick newBrick = new Brick2(Starter.pictures.get(temp),
-								i, j);
+						Brick newBrick = new Brick2(pictures.get(temp),
+								i, j,BallHeight,BallWidth);
 						graphs.add(newBrick);
 						remainBrick++;
 						break;
 					}
 					case '3': {
-						Brick newBrick = new Brick3(Starter.pictures.get(temp),
-								i, j);
+						Brick newBrick = new Brick3(pictures.get(temp),
+								i, j,BallHeight,BallWidth);
 						graphs.add(newBrick);
 						break;
 					}
@@ -108,18 +142,21 @@ public class LevelRunning {
 		root.getChildren().add(lifeScore);
 	}
 
-	public void refresh(double elapsedTime) {
+	public String refresh(double elapsedTime) {
 		for (Brick brick : graphs) {
 			if (bounceWithBrick(brick) == true)
 				break;
 		}
 		bounceWithPaddle();
-		bounceWithScreen();
+		if(bounceWithScreen()=="lose"){
+			return "lose";
+		}
 		ballRefresh(elapsedTime);
 		powerUpsRefresh(elapsedTime);
 		if ((remainBrick == 0) && (lifeScore.getLife() >= 0)) {
-			Starter.win();
+			return "win";
 		}
+		return "";
 	}
 
 	private void powerUpsRefresh(double elapsedTime) {
@@ -153,15 +190,19 @@ public class LevelRunning {
 	private Boolean bounceWithBrick(Brick brick) {
 		if (ball.intersects(brick.getBoundsInParent())) {
 			ball.setSpeedX(brick.ChangeX(ball.getX(), ball.getY(),
-					ball.getSpeedX(), ball.getSpeedY()));
+					ball.getSpeedX(), ball.getSpeedY(),throughWall()));
 			ball.setSpeedY(brick.ChangeY(ball.getX(), ball.getY(),
-					ball.getSpeedX(), ball.getSpeedY()));
+					ball.getSpeedX(), ball.getSpeedY(),throughWall()));
 			brick.addHit();
-			if (brick.Disappear() == true) {
+			String isDisappear=brick.Disappear();
+			if (isDisappear != " ") {
 				lifeScore.increaseScore(10);
 				graphs.remove(brick);
 				root.getChildren().remove(brick);
 				remainBrick--;
+				if(isDisappear=="PowerUp"){
+					createPowerUp(brick.getX(),brick.getY());
+				}
 			}
 			return true;
 		}
@@ -184,7 +225,7 @@ public class LevelRunning {
 	public void paddleRefresh(KeyCode code) {
 		if (code == KeyCode.RIGHT) {
 			paddle.setX(min((paddle.getX() + Math.abs(paddle.getSpeedX())),
-					myScene.getX() + myScene.getWidth() - Starter.PaddleWidth));
+					myScene.getX() + myScene.getWidth() - PaddleWidth));
 		} else if (code == KeyCode.LEFT) {
 			paddle.setX(max((paddle.getX() - Math.abs(paddle.getSpeedX())),
 					myScene.getX()));
@@ -197,10 +238,10 @@ public class LevelRunning {
 				} else if (code == KeyCode.DOWN) {
 					paddle.setY(min(
 							(paddle.getY() + Math.abs(paddle.getSpeedY())),
-							RowNum * Starter.BrickHeight - Starter.PaddleHeight));
+							RowNum * BrickHeight - PaddleHeight));
 				}
 			} else {
-				paddle.setY(RowNum * Starter.BrickHeight - Starter.PaddleHeight);
+				paddle.setY(RowNum * BrickHeight - PaddleHeight);
 			}
 		}
 	}
@@ -214,7 +255,7 @@ public class LevelRunning {
 		return false;
 	}
 
-	public final static Boolean throughWall() {
+	public final Boolean throughWall() {
 		for (PowerUp powerup : powerUpsCaught) {
 			if (powerup.throughWall() == true) {
 				return true;
@@ -241,8 +282,8 @@ public class LevelRunning {
 		}
 	}
 
-	private void bounceWithScreen() {
-		if ((ball.getX() + Starter.BallWidth >= myScene.getX()
+	private String bounceWithScreen() {
+		if ((ball.getX() + BallWidth >= myScene.getX()
 				+ myScene.getWidth())
 				|| (ball.getX() <= 0)) {
 			ball.setSpeedX(-ball.getSpeedX());
@@ -252,8 +293,9 @@ public class LevelRunning {
 		}
 		if (ball.getY() > myScene.getY() + myScene.getHeight()) {
 			ball.reset();
-			lifeScore.decreaseLife();
+			return lifeScore.decreaseLife();
 		}
+		return "";
 	}
 
 	public void createPowerUp(double posX, double posY) {
@@ -261,15 +303,30 @@ public class LevelRunning {
 		int choice = (random.nextInt() % 3);
 		PowerUp temp;
 		if (choice == 0) {
-			temp = new PowerThrough(posX, posY, Starter.pictures.get('t'));
-			powerUpsFalling.add(new PowerThrough(posX, posY, Starter.pictures.get('t')));
+			temp = new PowerThrough(posX, posY, pictures.get('t'));
+			powerUpsFalling.add(new PowerThrough(posX, posY, pictures.get('t')));
+			System.out.printf("PowerUp dropping! The power of through unbreakable bricks\n");
 		} else if (choice == 1) {
-			temp = new PowerVertical(posX, posY, Starter.pictures.get('v'));
+			temp = new PowerVertical(posX, posY, pictures.get('v'));
+			System.out.printf("PowerUp dropping! The power of moving paddle vertically\n");
 		} else {
-			temp = new PowerStick(posX, posY, Starter.pictures.get('s'));
+			temp = new PowerStick(posX, posY, pictures.get('s'));
+			System.out.printf("PowerUp dropping! The power of sticking the balls to the bottom pressing SPACE\n");
 		}
 		powerUpsFalling.add(temp);
 		root.getChildren().add(temp);
+	}
+	
+	public Group getRoot(){
+		return root;
+	}
+	
+	public void resetBall(){
+		ball.reset();
+	}
+	
+	public Scene getMyScene(){
+		return myScene;
 	}
 
 }

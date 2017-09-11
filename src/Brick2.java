@@ -5,17 +5,16 @@ public class Brick2 extends Brick {
 	private int hit=0;
 	private int kind=3;
 	
-	Brick2(Image image, int xNum, int yNum) {
-		super(image, xNum, yNum);
+	Brick2(Image image, int xNum, int yNum,double BallHeight,double BallWidth) {
+		super(image, xNum, yNum,BallHeight,BallWidth);
 	}
 	
 	@Override
-	public Boolean Disappear(){
+	public String Disappear(){
 		if(hit>=kind){
-			Starter.currentLevel.createPowerUp(getX(),getY());
-			return true;
+			return "PowerUp";
 		}else{
-			return false;
+			return " ";
 		}
 	}
 	

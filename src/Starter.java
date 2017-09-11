@@ -17,9 +17,9 @@ import javafx.util.Duration;
 
 public class Starter extends Application{
 
-	public static HashMap<Character, Image> pictures = new HashMap<Character, Image> ();
-	private static HashMap<Integer, Level> levels = new HashMap<Integer, Level> ();
-	private static HashMap<KeyCode, Integer> keyValue= new HashMap<KeyCode, Integer>() {{
+	private HashMap<Character, Image> pictures = new HashMap<Character, Image> ();
+	private HashMap<Integer, Level> levels = new HashMap<Integer, Level> ();
+	private HashMap<KeyCode, Integer> keyValue= new HashMap<KeyCode, Integer>() {{
 		put(KeyCode.DIGIT0,0);
 		put(KeyCode.DIGIT1,1);
 		put(KeyCode.DIGIT2,2);
@@ -31,26 +31,26 @@ public class Starter extends Application{
 		put(KeyCode.DIGIT8,8);
 		put(KeyCode.DIGIT9,9);
 	}};
-	private static Stage s;
-	public static LevelRunning currentLevel;
-	static int currentNum;
-	static Boolean winFlag=false;
-	static Boolean anounce=true;
+	private Stage s;
+	private LevelRunning currentLevel;
+	private int currentNum;
+	private Boolean winFlag=false;
+	private Boolean anounce=true;
 	
-	public static double PaddleHeight;
-	public static double PaddleWidth;
-	public static double BrickHeight;
-	public static double BrickWidth;
-	public static double BallHeight;
-	public static double BallWidth;
-	public static double PowerUpHeight;
-	public static double PowerUpWidth;
-	public static final Paint BACKGROUND = Color.WHITE;
-    public static final int FRAMES_PER_SECOND = 60;
-    public static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
-    public static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
+	private final Paint BACKGROUND = Color.WHITE;
+	private double BrickHeight;
+	private double BrickWidth;
+	private double PaddleHeight;
+	private double PaddleWidth;
+	private double BallHeight;
+	private double BallWidth;
+	private double PowerUpHeight;
+	private double PowerUpWidth;
+	static final int FRAMES_PER_SECOND = 60;
+    static final int MILLISECOND_DELAY = 1000 / FRAMES_PER_SECOND;
+    static final double SECOND_DELAY = 1.0 / FRAMES_PER_SECOND;
 	
-	private static void loadFile(int level,String fileName){
+	private void loadFile(int level,String fileName){
 		
 		Level newLevel;
 		File file = new File("block_config",fileName);
@@ -76,20 +76,20 @@ public class Starter extends Application{
 	
 	private final void loadPicture(char name, String path){
 		Image image =  new Image(getClass().getClassLoader().getResourceAsStream(path));
-		if(name=='1'){
-			BrickHeight=image.getHeight();
-			BrickWidth=image.getWidth();
-		}else if(name=='_'){
-			PaddleHeight=image.getHeight();
-			PaddleWidth=image.getWidth();
-		}else if(name=='.'){
-			BallHeight=image.getHeight();
-			BallWidth=image.getWidth();
-		}else if(name=='t'){
-			PowerUpHeight=image.getHeight();
-			PowerUpWidth=image.getWidth();
-		}
 		pictures.put(name, image);
+		if(name=='1'){
+			BrickHeight = pictures.get(name).getHeight();
+			BrickWidth=pictures.get(name).getWidth();
+		}else if(name=='_'){
+			PaddleHeight=pictures.get(name).getHeight();
+			PaddleWidth=pictures.get(name).getWidth();
+		}else if(name=='.'){
+			BallHeight=pictures.get(name).getHeight();
+			BallWidth=pictures.get(name).getWidth();
+		}else if(name=='t'){
+			PowerUpHeight=pictures.get(name).getHeight();
+			PowerUpWidth=pictures.get(name).getWidth();
+		}
 	}
 	
 	public void loadData(){
@@ -110,15 +110,21 @@ public class Starter extends Application{
     public void start (Stage s) {
 		loadData();
 		currentNum=1;
-		currentLevel=new LevelRunning(levels.get(1));
-		Starter.s=s;
+		currentLevel=new LevelRunning(levels.get(currentNum),pictures,currentNum);
+		this.s=s;
 		reset();
 		goHelp();
      // attach "game loop" to timeline to play it
         KeyFrame frame = new KeyFrame(Duration.millis(MILLISECOND_DELAY/100.0),
         		e -> {
-        			if(!anounce)
-        				currentLevel.refresh(SECOND_DELAY*10);
+        			if(!anounce){
+        				String temp=currentLevel.refresh(SECOND_DELAY*10);
+        				if(temp=="win"){
+        					win();
+        				}else if(temp=="lose"){
+        					lose();
+        				}
+        			}
         		});
         Timeline animation = new Timeline();
         animation.setCycleCount(Timeline.INDEFINITE);
@@ -126,17 +132,17 @@ public class Starter extends Application{
         animation.play();
     }
 
-	private static void setStage(Stage s) {
+	private void setStage(Stage s) {
 		s.setTitle("K-on!");
         s.show();
         s.sizeToScene();
-        LevelRunning.myScene.setOnKeyPressed(e -> handleKeyInput(e.getCode()));
+        currentLevel.getMyScene().setOnKeyPressed(e -> handleKeyInput(e.getCode()));
 	}
 	
-	static void goHelp(){
+	void goHelp(){
 		anounce=true;
 		winFlag=false;
-		currentLevel.root.getChildren().clear();
+		currentLevel.getRoot().getChildren().clear();
 	    designText("Hey!"+" Press ENTER to begin\n",0,0+12,Color.GREEN,Font.font(null, FontWeight.NORMAL, 12));
 	    ImageView picture;
 		picture = addPicture('.', 0, 12, BallWidth, BallHeight,"This is ball\n");
@@ -155,16 +161,16 @@ public class Starter extends Application{
 		s.setWidth(800);
 	}
 
-	private static ImageView addPicture(char c, double posX, double posY, double width, double height, String desc) {
+	private ImageView addPicture(char c, double posX, double posY, double width, double height, String desc) {
 		ImageView image=new ImageView(pictures.get(c));
 		image.setX(posX);
 		image.setY(posY);
-		currentLevel.root.getChildren().add(image);
+		currentLevel.getRoot().getChildren().add(image);
 		designText(desc, width, image.getY()+height, Color.GREEN, Font.font(null, FontWeight.NORMAL, 12));
 		return image;
 	}
 	
-	static void goLevel(int i){
+	void goLevel(int i){
 		if(levels.get(i)==null){
 		}else{
 			currentNum=i;
@@ -173,7 +179,7 @@ public class Starter extends Application{
 		}
 	}
 	
-	static void addLevel(){
+	void addLevel(){
 		if(levels.get(currentNum+1)==null){
 			goFinal();
 		}else{
@@ -183,7 +189,7 @@ public class Starter extends Application{
 		}
 	}
 	
-	private static void handleKeyInput (KeyCode code) {
+	private void handleKeyInput (KeyCode code) {
         currentLevel.paddleRefresh(code);
         if (code == KeyCode.ENTER) {
         	anounce=false;
@@ -197,56 +203,60 @@ public class Starter extends Application{
         	win();
         }
         if((code == KeyCode.SPACE)&&(currentLevel.stickBall())){
-        	currentLevel.ball.reset();
+        	currentLevel.resetBall();
         }
         if(code.isDigitKey()){
         	goLevel(keyValue.get(code));
         }
     }
 	
-	public static void lose(){
+	public void lose(){
 		anounce=true;
 		winFlag=false;
 		printText("You lose this level!\n" + "Press ENTER to restart");
 	}
 	
-	public static void win(){
+	public void win(){
 		anounce=true;
 		winFlag=true;
 		printText("You win this level!\n" + "Press ENTER to go to next level");
 	}
 	
-	public static void goFinal(){
+	public void goFinal(){
 		anounce=true;
 		winFlag=true;
 		printText("You win the whole game!\n" + "Goodbye!");
 	}
 
-	private static void printText(String passage) {
-		currentLevel.root.getChildren().clear();
+	private void printText(String passage) {
+		currentLevel.getRoot().getChildren().clear();
 		designText(passage,0,0+36,Color.GREEN,Font.font(null, FontWeight.NORMAL, 36));
 	}
 	
-	private static Text designText(String passage, double posX, double posY, Color color, Font font){
+	private Text designText(String passage, double posX, double posY, Color color, Font font){
 		Text t=designText(passage, color, font);
 		t.setX(posX);
 		t.setY(posY);
 		return t;
 	}
 	
-	private static Text designText(String passage, Color color, Font font){
+	private Text designText(String passage, Color color, Font font){
 		Text t=new Text();
 		t.setText(passage);
 		t.setFill(color);
 		t.setFont(font);
-		currentLevel.root.getChildren().add(t);
+		currentLevel.getRoot().getChildren().add(t);
 		return t;
 	}
 	
 	
-	public static void reset(){
-		s.setScene(currentLevel.reset(levels.get(currentNum)));
+	public void reset(){
+		s.setScene(currentLevel.reset(levels.get(currentNum),currentNum));
 		setStage(s);
+	}
+	
+	public final Image getPicture(char ch){
+		return pictures.get(ch);
 	}
 
 	
